@@ -2,11 +2,12 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
-const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-16-pro";
+const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-16";
 
 async function givePage() {
     const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
     const page = await browser.newPage();
+    await page.goto(url_16, { waitUntil: 'domcontentloaded' });
     return { browser, page };
 }
 
@@ -18,14 +19,13 @@ async function run() {
 }
 
 async function add_to_cart(page) {
-    await page.goto(url_16, { waitUntil: 'domcontentloaded' });
 
-    await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_3inch']", 0);
-    await smart_click_with_pause(page, "input[value='deserttitanium']", 0);
-    await smart_click_with_pause(page, "input[data-autom='dimensionCapacity512gb']", 0);
+    await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_7inch']", 0);
+    await smart_click_with_pause(page, "input[value='black']", 0);
+    await smart_click_with_pause(page, "input[data-autom='dimensionCapacity256gb']", 0);
     await smart_click_with_pause(page, "input[data-autom='choose-noTradeIn']", 1000);
     await smart_click_with_pause(page, "input[data-autom='purchaseGroupOptionfullprice']", 2000);
-    await smart_click_with_pause(page, "input[data-autom='carrierModelATT_IPHONE16PRO']", 2000);
+    await smart_click_with_pause(page, "input[data-autom='carrierModelUNLOCKED/US']", 2000);
     await smart_click_with_pause(page, "input[data-autom='acptl']", 1000);
     await smart_click_with_pause(page, "input[data-autom='acptl_annually']", 3000);
     await smart_click_with_pause(page, "button[data-autom='add-to-cart']", 3000);
