@@ -1,0 +1,16 @@
+# Node.js dependencies
+node_modules/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS/editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# Wrong files accidentally created
+install
