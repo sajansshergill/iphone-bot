@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
-const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-16";
+const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-17";
 
 async function givePage() {
     const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
@@ -19,8 +19,7 @@ async function run() {
 }
 
 async function add_to_cart(page) {
-
-    await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_7inch']", 0);
+    console.log(`add_to_cart method url ${page.url()}`);
     await smart_click_with_pause(page, "input[value='black']", 0);
     await smart_click_with_pause(page, "input[data-autom='dimensionCapacity256gb']", 0);
     await smart_click_with_pause(page, "input[data-autom='choose-noTradeIn']", 1000);
@@ -36,9 +35,19 @@ async function add_to_cart(page) {
     
 }
 
+async function add_to_bag(page){
+
+}
+
+async function guest_login_and_checkout(page){
+
+}
+
+
+
 async function shipping(page) {
     // await new Promise(r => setTimeout(r, 1000));
-    
+    console.log(`shipping method url ${page.url()}`);
     selector = "input[id='checkout.shipping.addressSelector.newAddress.address.firstName']";
     await page.waitForSelector(selector);
     await page.type(selector, "Sajan");
@@ -61,6 +70,7 @@ async function shipping(page) {
 }
 
 async function payment(page) {
+    console.log(`payment method url ${page.url()}`);
     await smart_click_with_pause(page, "label[id='checkout.billing.billingoptions.credit_label']", 1000);
 
     selector = "input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.cardNumber']"
@@ -83,10 +93,71 @@ async function payment(page) {
 }
 
 //Helper Function
-async function smart_click_with_pause(page, selector, pause) {
-    await page.waitForSelector(selector);
-    await page.evaluate((s) => document.querySelector(s).click(), selector);
-    await new Promise(r => setTimeout(r, pause));
+async function smart_click_with_pause(page, selector, pause, maxRetries = 3) {
+    console.log(page.url())
+    console.log("waiting for selector, " + selector)
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`Attempt ${attempt}/${maxRetries}: waiting for selector, ${selector}`);
+            
+            // Wait for selector to be present
+            await page.waitForSelector(selector, { timeout: 10000 });
+            
+            // Verify element is still present and clickable before clicking
+            const element = await page.$(selector);
+            if (!element) {
+                throw new Error(`Element ${selector} not found after waitForSelector`);
+            }
+            
+            // Click the element
+            await page.evaluate((s) => {
+                const el = document.querySelector(s);
+                if (!el) {
+                    throw new Error(`Element ${s} not found in DOM`);
+                }
+                el.click();
+            }, selector);
+            
+            // Pause after successful click
+            await new Promise(r => setTimeout(r, pause));
+            
+            console.log(`Successfully clicked ${selector} on attempt ${attempt} \n`);
+            return; // Success - exit the function
+            
+        } catch (error) {
+            lastError = error;
+            console.warn(`Attempt ${attempt}/${maxRetries} failed for selector ${selector}:`, error.message);
+            
+            if (attempt === maxRetries) {
+                console.error(`All ${maxRetries} attempts failed for selector ${selector}. Retrying for entire page ${page.url}`);
+                // TODO: retry the entire page. Fill out ifs. 
+                const currUrl = page.url();
+                if(currUrl.includes("https://www.apple.com/shop/buy-iphone/iphone-17")){
+
+                }
+                else if(currUrl.includes("https://www.apple.com/shop/bag")){
+
+                }
+                else if(currUrl.includes("https://secure7.store.apple.com/shop/signIn")){
+
+                }
+                else if(currUrl.includes("https://secure7.store.apple.com/shop/checkout?_s=Shipping-init")){
+
+                }
+                else if(currUrl.includes("https://secure7.store.apple.com/shop/checkout?_s=Billing-init")){
+
+                }
+                throw new Error(`Failed to click ${selector} after ${maxRetries} attempts. Last error: ${error.message}`);
+            }
+            
+            // Wait before retrying (exponential backoff)
+            const retryDelay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+            console.log(`Waiting ${retryDelay}ms before retry...`);
+            await new Promise(r => setTimeout(r, retryDelay));
+        }
+    }
 }
 
 run();
