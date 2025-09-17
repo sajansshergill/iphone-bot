@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
-const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-17-pro";
+const url_17_pro = "https://www.apple.com/shop/buy-iphone/iphone-17-pro";
 const FIRST_PAGE_MAX_RETRIES = 3;
 let firstPageCurrRetries = 1;
 async function givePage() {
@@ -137,9 +137,9 @@ async function smart_click_with_pause(page, selector, pause, maxRetries = 3) {
                 // TODO: retry the entire page. Fill out ifs. 
                 const currUrl = page.url();
                 
-                if(currUrl.includes("https://www.apple.com/shop/buy-iphone/iphone-17") && firstPageCurrRetries < FIRST_PAGE_MAX_RETRIES){
+                if(currUrl.includes(url_17_pro) && firstPageCurrRetries < FIRST_PAGE_MAX_RETRIES){
                     console.log("Retrying first page");
-                    page.goto("https://www.apple.com/shop/buy-iphone/iphone-17");
+                    page.goto(url_17_pro);
                     firstPageCurrRetries += 1;
                     add_to_cart(page, selector, pause);
                 }
