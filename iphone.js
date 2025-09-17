@@ -2,8 +2,9 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
-const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-17";
-
+const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-17-pro";
+const FIRST_PAGE_MAX_RETRIES = 3;
+let firstPageCurrRetries = 1;
 async function givePage() {
     const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
     const page = await browser.newPage();
@@ -20,7 +21,8 @@ async function run() {
 
 async function add_to_cart(page) {
     console.log(`add_to_cart method url ${page.url()}`);
-    await smart_click_with_pause(page, "input[value='black']", 0);
+    await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_9inch']", 0);
+    await smart_click_with_pause(page, "input[value='deepblue']", 0);
     await smart_click_with_pause(page, "input[data-autom='dimensionCapacity256gb']", 0);
     await smart_click_with_pause(page, "input[data-autom='choose-noTradeIn']", 1000);
     await smart_click_with_pause(page, "input[data-autom='purchaseGroupOptionfullprice']", 2000);
@@ -36,11 +38,11 @@ async function add_to_cart(page) {
 }
 
 async function add_to_bag(page){
-
+    // TODO: add to bag page
 }
 
 async function guest_login_and_checkout(page){
-
+    // TODO: Guest login page with checkout button
 }
 
 
@@ -85,7 +87,7 @@ async function payment(page) {
 
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
     
-    await smart_click_with_pause(page, "input[id='checkout.review.placeOrder.termsAndConditions.productTerms0.termsCheckbox']", 1000);
+    // await smart_click_with_pause(page, "input[id='checkout.review.placeOrder.termsAndConditions.productTerms0.termsCheckbox']", 1000);
     await smart_click_with_pause(page, "input[id='checkout.review.placeOrder.termsAndConditions.appleCarePlusLighteningTermsAnnual0.termsCheckbox']", 1000);
 
 
@@ -134,21 +136,25 @@ async function smart_click_with_pause(page, selector, pause, maxRetries = 3) {
                 console.error(`All ${maxRetries} attempts failed for selector ${selector}. Retrying for entire page ${page.url}`);
                 // TODO: retry the entire page. Fill out ifs. 
                 const currUrl = page.url();
-                if(currUrl.includes("https://www.apple.com/shop/buy-iphone/iphone-17")){
-
+                
+                if(currUrl.includes("https://www.apple.com/shop/buy-iphone/iphone-17") && firstPageCurrRetries < FIRST_PAGE_MAX_RETRIES){
+                    console.log("Retrying first page");
+                    page.goto("https://www.apple.com/shop/buy-iphone/iphone-17");
+                    firstPageCurrRetries += 1;
+                    add_to_cart(page, selector, pause);
                 }
-                else if(currUrl.includes("https://www.apple.com/shop/bag")){
+                // else if(currUrl.includes("https://www.apple.com/shop/bag")){
 
-                }
-                else if(currUrl.includes("https://secure7.store.apple.com/shop/signIn")){
+                // }
+                // else if(currUrl.includes("https://secure7.store.apple.com/shop/signIn")){
 
-                }
-                else if(currUrl.includes("https://secure7.store.apple.com/shop/checkout?_s=Shipping-init")){
+                // }
+                // else if(currUrl.includes("https://secure7.store.apple.com/shop/checkout?_s=Shipping-init")){
 
-                }
-                else if(currUrl.includes("https://secure7.store.apple.com/shop/checkout?_s=Billing-init")){
+                // }
+                // else if(currUrl.includes("https://secure7.store.apple.com/shop/checkout?_s=Billing-init")){
 
-                }
+                // }
                 throw new Error(`Failed to click ${selector} after ${maxRetries} attempts. Last error: ${error.message}`);
             }
             
