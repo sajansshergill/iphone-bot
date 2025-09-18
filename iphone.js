@@ -70,7 +70,6 @@ async function collectUserInputs() {
     userInputs.firstName = await askQuestion('First Name: ');
     userInputs.lastName = await askQuestion('Last Name: ');
     userInputs.address = await askQuestion('Street Address: ');
-    userInputs.city = await askQuestion('City: ');
     userInputs.state = await askQuestion('State (2 letters): ');
     userInputs.zipCode = await askQuestion('ZIP Code: ');
     
@@ -108,14 +107,12 @@ async function collectUserInputs() {
         userInputs.billingFirstName = userInputs.firstName;
         userInputs.billingLastName = userInputs.lastName;
         userInputs.billingAddress = userInputs.address;
-        userInputs.billingCity = userInputs.city;
         userInputs.billingState = userInputs.state;
         userInputs.billingZipCode = userInputs.zipCode;
     } else {
         userInputs.billingFirstName = await askQuestion('Billing First Name: ');
         userInputs.billingLastName = await askQuestion('Billing Last Name: ');
         userInputs.billingAddress = await askQuestion('Billing Street Address: ');
-        userInputs.billingCity = await askQuestion('Billing City: ');
         userInputs.billingState = await askQuestion('Billing State (2 letters): ');
         userInputs.billingZipCode = await askQuestion('Billing ZIP Code: ');
     }
@@ -241,14 +238,10 @@ async function payment(page, userInputs) {
     await new Promise(r => setTimeout(r, 1000));
     
     // Continue to billing address
-    await page.click("button[id='rs-checkout-continue-button-bottom']");
+    await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 3000);
+
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
     
-    // Accept terms and conditions
-    // await smart_click_with_pause(page, "input[id='checkout.review.placeOrder.termsAndConditions.appleCarePlusLighteningTermsAnnual0.termsCheckbox']", 1000);
-
-    // Final checkout button
-    await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
 }
 
 // Helper Function (unchanged from original)
