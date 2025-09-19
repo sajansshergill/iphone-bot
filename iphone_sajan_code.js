@@ -4,6 +4,14 @@ puppeteer.use(StealthPlugin());
 
 const url_16 = "https://www.apple.com/shop/buy-iphone/iphone-16";
 
+const zipcodeToStoreMap = new Map([
+    ['32839', 'R053'],
+    ['33130', 'R623'],
+    ['32809', 'R143'],
+    ['33139', 'R115'],
+    ['33132', 'R623']
+]);
+
 async function givePage() {
     const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
     const page = await browser.newPage();
@@ -41,12 +49,12 @@ async function add_to_cart(page) {
     await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
     await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 2000);
 
-    await smart_click_with_pause(page, "input[value='R053']", 1000);
+    await smart_click_with_pause(page, `input[value='${zipcodeToStoreMap.get("32839")}']`, 5000);
 
 
-    await smart_click_with_pause(page, '#checkout\.fulfillment\.pickupTab\.pickup\.timeSlot\.dateTimeSlots\.timeSlotValue', 3000);
-    await page.keyboard.press('ArrowDown'); // Move to first real option
-    await page.keyboard.press('Enter');
+    const firstOptionValue = await page.$eval('#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue option:not([disabled]):not([value=""])', el => el.value);
+    console.log(`first option value ${firstOptionValue}`);
+    await page.select('#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue', firstOptionValue);
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
     
 }
