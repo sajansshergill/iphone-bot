@@ -27,8 +27,7 @@ async function add_to_cart(page) {
     await smart_click_with_pause(page, "input[data-autom='choose-noTradeIn']", 1000);
     await smart_click_with_pause(page, "input[data-autom='purchaseGroupOptionfullprice']", 2000);
     await smart_click_with_pause(page, "input[data-autom='carrierModelUNLOCKED/US']", 2000);
-    await smart_click_with_pause(page, "input[data-autom='acptl']", 1000);
-    await smart_click_with_pause(page, "input[data-autom='acptl_annually']", 3000);
+    await smart_click_with_pause(page, "input[data-autom='noapplecare']", 1000);
     await smart_click_with_pause(page, "button[value='add-to-cart']", 3000);
     await smart_click_with_pause(page, "button[data-autom='proceed']", 3000);
     await smart_click_with_pause(page, "button[data-autom='checkout']", 1000);
@@ -135,8 +134,10 @@ async function billing_details(page) {
     await new Promise(r => setTimeout(r, 5000));
     await page.click('#rs-checkout-continue-button-bottom');
     await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 5000);
+    await new Promise(r => setTimeout(r, 5000));
+    await page.click('#rs-checkout-continue-button-bottom');
+    await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 5000);
 
-    await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
     
 }
 
