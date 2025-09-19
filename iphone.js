@@ -14,7 +14,13 @@ puppeteer.use(StealthPlugin());
 const url_17_pro = "https://www.apple.com/shop/buy-iphone/iphone-17-pro";
 const FIRST_PAGE_MAX_RETRIES = 3;
 let firstPageCurrRetries = 1;
-
+const zipcodeToStoreMap = new Map([
+    ['32839', 'R053'],
+    ['33130', 'R623'],
+    ['32809', 'R143'],
+    ['33139', 'R115'],
+    ['33132', 'R623']
+]);
 // Create readline interface for user input
 const rl = readline.createInterface({
     input: process.stdin,
@@ -67,11 +73,14 @@ async function collectUserInputs() {
     console.log('\n=== Shipping Information ===');
     
     // Shipping details
-    userInputs.firstName = await askQuestion('First Name: ');
-    userInputs.lastName = await askQuestion('Last Name: ');
-    userInputs.address = await askQuestion('Street Address: ');
-    userInputs.state = await askQuestion('State (2 letters): ');
-    userInputs.zipCode = await askQuestion('ZIP Code: ');
+    let pickupZipcode;
+    do {
+        pickupZipcode = await askQuestion('Zipcode of pickup store (32839, 33130, 32809, 33139, 33132): ');
+        if (!zipcodeToStoreMap.has(pickupZipcode)) {
+            console.log('Invalid zipcode. Available zipcodes are:', Array.from(zipcodeToStoreMap.keys()).join(', '));
+        }
+    } while (!zipcodeToStoreMap.has(pickupZipcode));
+    userInputs.pickupZipcode = pickupZipcode;
     
     // Email validation
     let email;
@@ -147,7 +156,8 @@ async function run() {
         
         const { browser, page } = await givePage();
         await add_to_cart(page, userInputs);
-        await shipping(page, userInputs);
+        await checkout_pickup(page, userInputs);
+
         await payment(page, userInputs);
         
         console.log('\nCheckout process completed!');
@@ -201,10 +211,10 @@ async function add_to_cart(page, userInputs) {
     await page.waitForSelector("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']");
     await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 }); // select all
     await page.keyboard.press("Backspace"); // clear
-    await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
+    await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", userInputs.pickupZipcode); // type new value
     await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
 
-    await smart_click_with_pause(page, "input[value='R053']", 5000);
+    await smart_click_with_pause(page, `input[value='${zipcodeToStoreMap.get(userInputs.pickupZipcode)}']`, 5000);
     await new Promise(r => setTimeout(r, 10000));
 
     const dropdown = "select#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue";
@@ -219,30 +229,22 @@ async function add_to_cart(page, userInputs) {
     // await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
 }
 
-async function shipping(page, userInputs) {
-    console.log(`shipping method url ${page.url()}`);
+async function checkout_pickup(page) {
+    await new Promise(r => setTimeout(r, 4000));
     
-    // Wait for shipping form and fill with user inputs
-    const selector = "input[id='checkout.shipping.addressSelector.newAddress.address.firstName']";
+    selector = "input[id='checkout.pickupContact.selfPickupContact.selfContact.address.firstName']";
     await page.waitForSelector(selector);
-    await page.type(selector, userInputs.firstName);
+    await page.type(selector, "Sajan");
 
-    await page.type("input[name='lastName']", userInputs.lastName);
-    await page.type("input[name='street']", userInputs.address);
+    await page.type("input[name='lastName']", 'Shergill');
 
-    // Handle ZIP code
-    const zipInput = await page.$("input[name='postalCode']");
-    await zipInput.click({clickCount: 3});
-    await zipInput.type(userInputs.zipCode);
-
-    await page.type("input[name='emailAddress']", userInputs.email);
+    await page.type("input[name='emailAddress']", 'sajansshergill@gmail.com');
     await new Promise(r => setTimeout(r, 1000));
-    await page.type("input[name='fullDaytimePhone']", userInputs.phone);
+    await page.type("input[name='fullDaytimePhone", '5513584335');
     await new Promise(r => setTimeout(r, 1000));
-    
-    // Continue to next step
     await page.click('#rs-checkout-continue-button-bottom');
-    await smart_click_with_pause(page, "button[data-autom='use-Existing-address']", 2000);
+    await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 2000);
+
 }
 
 async function payment(page, userInputs) {
