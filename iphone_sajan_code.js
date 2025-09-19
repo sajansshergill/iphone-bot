@@ -55,7 +55,6 @@ async function add_to_cart(page) {
     console.log("Selected value: " + firstValue);
     await page.select(dropdown, firstValue);
 
-    await smart_click_with_pause(page, "label[data-autom='R143']", 5000);
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
     
 }
