@@ -41,8 +41,10 @@ async function add_to_cart(page) {
     await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
     await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 2000);
 
-    //await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.timeSlot.dateTimeSlots.timeSlotValue']", 1000);
-    await smart_click_with_pause('#checkout\.fulfillment\.pickupTab\.pickup\.timeSlot\.dateTimeSlots\.timeSlotValue');
+    await smart_click_with_pause(page, "input[value='R053']", 1000);
+
+
+    await smart_click_with_pause(page, '#checkout\.fulfillment\.pickupTab\.pickup\.timeSlot\.dateTimeSlots\.timeSlotValue', 3000);
     await page.keyboard.press('ArrowDown'); // Move to first real option
     await page.keyboard.press('Enter');
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
@@ -122,6 +124,7 @@ async function payment(page) {
 //Helper Function
 async function smart_click_with_pause(page, selector, pause) {
     console.log("selector is " + selector);
+    // await page.delay(selector)
     await page.waitForSelector(selector);
     await page.evaluate((s) => document.querySelector(s).click(), selector);
     await new Promise(r => setTimeout(r, pause));
