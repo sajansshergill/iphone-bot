@@ -15,6 +15,7 @@ async function run() {
     const { browser, page } = await givePage();
     await add_to_cart(page);
     await pickup(page);
+    await checkout_pickup(page);
     await payment(page);
 }
 
@@ -86,27 +87,22 @@ async function pickup(page) {
 
 }
 
-async function shipping(page) {
+async function checkout_pickup(page) {
     // await new Promise(r => setTimeout(r, 1000));
     
-    selector = "input[id='checkout.shipping.addressSelector.newAddress.address.firstName']";
+    selector = "input[id='checkout.pickupContact.selfPickupContact.selfContact.address.firstName']";
     await page.waitForSelector(selector);
     await page.type(selector, "Sajan");
 
     await page.type("input[name='lastName']", 'Shergill');
     await page.type("input[name='street']", '8204 Baltimore Avenue');
 
-    //Zip code handling
-    const input = await page.$("input[name='postalCode']");
-    await input.click({clickCount: 3});
-    await input.type('10038');
-
     await page.type("input[name='emailAddress']", 'sajansshergill@gmail.com');
     await new Promise(r => setTimeout(r, 1000));
     await page.type("input[name='fullDaytimePhone", '5513584335');
     await new Promise(r => setTimeout(r, 1000));
     await page.click('#rs-checkout-continue-button-bottom');
-    await smart_click_with_pause(page, "button[data-autom='use-Existing-address']", 2000);
+    await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 2000);
 
 }
 
