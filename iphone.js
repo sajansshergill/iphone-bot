@@ -190,7 +190,33 @@ async function add_to_cart(page, userInputs) {
     
     // Guest checkout (fixed)
     await smart_click_with_pause(page, "button[id='signIn.guestLogin.guestLogin']", 1000);
+
+
+
+
+    // NEW CODE PICKUP
+    await smart_click_with_pause(page, "button[aria-checked='false']", 1000);
+    await smart_click_with_pause(page, "button[data-autom='fulfillment-pickup-store-search-button']", 1000);
+
+    await page.waitForSelector("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']");
+    await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 }); // select all
+    await page.keyboard.press("Backspace"); // clear
+    await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
+    await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
+
+    await smart_click_with_pause(page, "input[value='R053']", 5000);
+    await new Promise(r => setTimeout(r, 10000));
+
+    const dropdown = "select#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue";
+    await page.click(dropdown);
+    
+    // Select the first option (index 0)
+    const firstValue = await page.$eval(dropdown, el => el.options[1].value);
+    console.log("Selected value: " + firstValue);
+    await page.select(dropdown, firstValue);
+
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
+    // await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
 }
 
 async function shipping(page, userInputs) {

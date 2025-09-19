@@ -43,9 +43,6 @@ async function add_to_cart(page) {
 
     await smart_click_with_pause(page, "input[value='R053']", 5000);
     await new Promise(r => setTimeout(r, 10000));
-    // await smart_click_with_pause(page, '#checkout\.fulfillment\.pickupTab\.pickup\.timeSlot\.dateTimeSlots\.timeSlotValue', 3000);
-    // await page.keyboard.press('ArrowDown'); // Move to first real option
-    // await page.keyboard.press('Enter');
 
     const dropdown = "select#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue";
     await page.click(dropdown);
