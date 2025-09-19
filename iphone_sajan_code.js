@@ -49,21 +49,16 @@ async function add_to_cart(page) {
     await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 }); // select all
     await page.keyboard.press("Backspace"); // clear
     await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
-    await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 2000);
-
+    await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
+    await page.waitForSelector(`input[value='${zipcodeToStoreMap.get("32839")}']`);
     await smart_click_with_pause(page, `input[value='${zipcodeToStoreMap.get("32839")}']`, 5000);
 
-    // await smart_click_with_pause(page, '#checkout\.fulfillment\.pickupTab\.pickup\.timeSlot\.dateTimeSlots\.timeSlotValue', 3000);
-    // await page.keyboard.press('ArrowDown'); // Move to first real option
-    // await page.keyboard.press('Enter');
 
     // Wait for dropdown
-    const dropdown = "select[id='checkout.fulfillment.pickupTab.pickup.timeSlot.dateTimeSlots.timeSlotValue']";
-    await page.waitForSelector(dropdown);
-    // Get the first <option> value
-    const firstValue = await page.$eval(dropdown, sel => sel.options[0].value);
-    // Select it
-    await page.select(dropdown, firstValue);
+    await page.waitForSelector('#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue');
+    const firstOptionValue = await page.$eval('#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue option:not([disabled]):not([value=""])', el => el.value);
+    console.log(`first option value ${firstOptionValue}`);
+    await page.select('#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue', firstOptionValue);
 
     
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
