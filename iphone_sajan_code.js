@@ -29,9 +29,7 @@ async function add_to_cart(page) {
     await smart_click_with_pause(page, "input[data-autom='acptl']", 1000);
     await smart_click_with_pause(page, "input[data-autom='acptl_annually']", 3000);
     await smart_click_with_pause(page, "button[value='add-to-cart']", 3000);
-    await new Promise(r => setTimeout(r, 3000));
-    await page.click("button[data-autom='proceed']");
-    //await smart_click_with_pause(page, "button[data-autom='proceed']", 3000);
+    await smart_click_with_pause(page, "button[data-autom='proceed']", 3000);
     await smart_click_with_pause(page, "button[data-autom='checkout']", 1000);
     await smart_click_with_pause(page, "button[id='signIn.guestLogin.guestLogin']", 3000);
     await smart_click_with_pause(page, "button[aria-checked='false']", 1000);
@@ -41,23 +39,23 @@ async function add_to_cart(page) {
     await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 }); // select all
     await page.keyboard.press("Backspace"); // clear
     await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
-    await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 2000);
+    await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
 
-    await smart_click_with_pause(page, "input[value='R053']", 1000);
-
+    await smart_click_with_pause(page, "input[value='R053']", 5000);
+    await new Promise(r => setTimeout(r, 10000));
     // await smart_click_with_pause(page, '#checkout\.fulfillment\.pickupTab\.pickup\.timeSlot\.dateTimeSlots\.timeSlotValue', 3000);
     // await page.keyboard.press('ArrowDown'); // Move to first real option
     // await page.keyboard.press('Enter');
 
-    // Wait for dropdown
-    const dropdown = "select[id='checkout.fulfillment.pickupTab.pickup.timeSlot.dateTimeSlots.timeSlotValue']";
-    await page.waitForSelector(dropdown);
-    // Get the first <option> value
-    const firstValue = await page.$eval(dropdown, sel => sel.options[0].value);
-    // Select it
+    const dropdown = "select#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue";
+    await page.click(dropdown);
+    
+    // Select the first option (index 0)
+    const firstValue = await page.$eval(dropdown, el => el.options[1].value);
+    console.log("Selected value: " + firstValue);
     await page.select(dropdown, firstValue);
 
-    
+    await smart_click_with_pause(page, "label[data-autom='R143']", 5000);
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
     
 }
