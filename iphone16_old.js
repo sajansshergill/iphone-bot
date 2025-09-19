@@ -28,43 +28,22 @@ async function add_to_cart(page) {
     await smart_click_with_pause(page, "input[data-autom='carrierModelUNLOCKED/US']", 2000);
     await smart_click_with_pause(page, "input[data-autom='acptl']", 1000);
     await smart_click_with_pause(page, "input[data-autom='acptl_annually']", 3000);
-    await smart_click_with_pause(page, "button[value='add-to-cart']", 3000);
+    await smart_click_with_pause(page, "button[data-autom='add-to-cart']", 3000);
     await smart_click_with_pause(page, "button[data-autom='proceed']", 3000);
     await smart_click_with_pause(page, "button[data-autom='checkout']", 1000);
     await smart_click_with_pause(page, "button[id='signIn.guestLogin.guestLogin']", 3000);
     await smart_click_with_pause(page, "button[aria-checked='false']", 1000);
-    await smart_click_with_pause(page, "button[data-autom='fulfillment-pickup-store-search-button']", 1000);
-
-    await page.waitForSelector("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']");
-    await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 }); // select all
-    await page.keyboard.press("Backspace"); // clear
-    await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", "32839"); // type new value
-    await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
-
-    await smart_click_with_pause(page, "input[value='R053']", 5000);
-    await new Promise(r => setTimeout(r, 10000));
-
-    const dropdown = "select#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue";
-    await page.click(dropdown);
-    
-    // Select the first option (index 0)
-    const firstValue = await page.$eval(dropdown, el => el.options[1].value);
-    console.log("Selected value: " + firstValue);
-    await page.select(dropdown, firstValue);
-
-    await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
+    // await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
     
 }
 
+
 async function pickup(page) {
-    await new Promise(r => setTimeout(r, 3000));
+    // await new Promise(r => setTimeout(r, 1000));
     
     selector = "input[id='checkout.shipping.addressSelector.newAddress.address.firstName']";
     await page.waitForSelector(selector);
     await page.type(selector, "Sajan");
-
-    //await page.type("input[id='checkout.shipping.addressSelector.newAddress.address.firstName']", 'Sajan');
-    //await page.type("input[name='firstName']", 'Sajan');
 
     await page.type("input[name='lastName']", 'Shergill');
     await page.type("input[name='street']", '8204 Baltimore Avenue');
@@ -132,7 +111,6 @@ async function payment(page) {
 //Helper Function
 async function smart_click_with_pause(page, selector, pause) {
     console.log("selector is " + selector);
-    // await page.delay(selector)
     await page.waitForSelector(selector);
     await page.evaluate((s) => document.querySelector(s).click(), selector);
     await new Promise(r => setTimeout(r, pause));
