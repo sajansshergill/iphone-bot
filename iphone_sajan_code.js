@@ -14,7 +14,6 @@ async function givePage() {
 async function run() {
     const { browser, page } = await givePage();
     await add_to_cart(page);
-    await pickup(page);
     await checkout_pickup(page);
     await payment(page);
 }
@@ -88,14 +87,13 @@ async function pickup(page) {
 }
 
 async function checkout_pickup(page) {
-    // await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 4000));
     
     selector = "input[id='checkout.pickupContact.selfPickupContact.selfContact.address.firstName']";
     await page.waitForSelector(selector);
     await page.type(selector, "Sajan");
 
     await page.type("input[name='lastName']", 'Shergill');
-    await page.type("input[name='street']", '8204 Baltimore Avenue');
 
     await page.type("input[name='emailAddress']", 'sajansshergill@gmail.com');
     await new Promise(r => setTimeout(r, 1000));
