@@ -11,7 +11,7 @@ const readline = require('readline');
 
 puppeteer.use(StealthPlugin());
 
-const url_17_pro = "https://www.apple.com/shop/buy-iphone/iphone-17-pro";
+const url_17_pro = "https://www.apple.com/shop/buy-iphone/iphone-16";
 const FIRST_PAGE_MAX_RETRIES = 3;
 let firstPageCurrRetries = 1;
 const zipcodeToStoreMap = new Map([
@@ -38,7 +38,7 @@ function askQuestion(question) {
 
 // Helper function to validate color choice
 function validateColor(color) {
-    const validColors = ['silver', 'cosmic orange', 'deep blue'];
+    const validColors = ['black'];
     return validColors.includes(color.toLowerCase());
 }
 
@@ -63,13 +63,16 @@ async function collectUserInputs() {
     // Color selection
     let color;
     do {
-        color = await askQuestion('Choose color (silver, cosmic orange, deep blue): ');
+        color = await askQuestion('Choose color (black): ');
         if (!validateColor(color)) {
-            console.log('Invalid color. Please choose from: silver, cosmic orange, deep blue');
+            console.log('Invalid color. Please choose from: black');
         }
     } while (!validateColor(color));
     userInputs.color = color.toLowerCase();
-        
+    
+    console.log('\n=== Shipping Information ===');
+    
+    // Shipping details
     let pickupZipcode;
     do {
         pickupZipcode = await askQuestion('Zipcode of pickup store (32839, 33130, 32809, 33139, 33132): ');
@@ -113,17 +116,16 @@ async function collectUserInputs() {
     userInputs.billingState = await askQuestion('Billing State (2 letters): ');
     userInputs.billingZipCode = await askQuestion('Billing ZIP Code: ');
     
+    
     return userInputs;
 }
 
 // Map color names to Apple's color values
 function getColorValue(colorName) {
     const colorMap = {
-        'silver': 'silver',
-        'cosmic orange': 'cosmicorange',
-        'deep blue': 'deepblue'
+        'black': 'black'
     };
-    return colorMap[colorName] || 'deepblue';
+    return colorMap[colorName] || 'black';
 }
 
 async function givePage() {
@@ -177,13 +179,15 @@ async function billing_details(page, userInputs) {
     await new Promise(r => setTimeout(r, 5000));
     await page.click('#rs-checkout-continue-button-bottom');
     await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 5000);
+
+    
 }
 
 async function add_to_cart(page, userInputs) {
     console.log(`add_to_cart method url ${page.url()}`);
     
     // Select iPhone 17 Pro Max (6.9 inch screen)
-    await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_9inch']", 0);
+    await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_7inch']", 0);
     
     // Select color based on user input
     const colorValue = getColorValue(userInputs.color);
@@ -224,7 +228,7 @@ async function add_to_cart(page, userInputs) {
     await page.keyboard.press("Backspace"); // clear
     await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", userInputs.pickupZipcode); // type new value
     await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
-
+    console.log("user input pickup zip code: " + userInputs.pickupZipcode);
     await smart_click_with_pause(page, `input[value='${zipcodeToStoreMap.get(userInputs.pickupZipcode)}']`, 5000);
     await new Promise(r => setTimeout(r, 10000));
 
