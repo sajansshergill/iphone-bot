@@ -16,6 +16,7 @@ async function run() {
     await add_to_cart(page);
     await checkout_pickup(page);
     await payment(page);
+    await billing_details(page);
 }
 
 async function add_to_cart(page) {
@@ -114,16 +115,29 @@ async function payment(page) {
     await page.type("input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.expiration']", "02/29");
     await new Promise(r => setTimeout(r, 1000));
     await page.type("input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.securityCode']", "940");
-    await new Promise(r => setTimeout(r, 1000));
-    await page.click("button[id='rs-checkout-continue-button-bottom']");
+}
+
+async function billing_details(page) {
+    await new Promise(r => setTimeout(r, 4000));
+    
+    selector = "input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.billingAddress.address.firstName']";
+    await page.waitForSelector(selector);
+    await page.type(selector, "Sajan");
+
+    await page.type("input[name='lastName']", 'Shergill');
+    await page.type("input[name='street']", 'One Pace Plaza');
+
+    //Zip code handling
+    const input = await page.$("input[name='postalCode']");
+    await input.click({clickCount: 3});
+    await input.type('10038');
+    
+    await new Promise(r => setTimeout(r, 5000));
+    await page.click('#rs-checkout-continue-button-bottom');
+    await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 5000);
 
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
     
-    await smart_click_with_pause(page, "input[id='checkout.review.placeOrder.termsAndConditions.productTerms0.termsCheckbox']", 1000);
-    await smart_click_with_pause(page, "input[id='checkout.review.placeOrder.termsAndConditions.appleCarePlusLighteningTermsAnnual0.termsCheckbox']", 1000);
-
-
-    await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
 }
 
 //Helper Function
