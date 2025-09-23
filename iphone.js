@@ -245,13 +245,13 @@ async function checkout_pickup(page) {
     
     selector = "input[id='checkout.pickupContact.selfPickupContact.selfContact.address.firstName']";
     await page.waitForSelector(selector);
-    await page.type(selector, "Sajan");
+    await page.type(selector, "Bernardo");
 
-    await page.type("input[name='lastName']", 'Shergill');
+    await page.type("input[name='lastName']", 'Soares');
 
-    await page.type("input[name='emailAddress']", 'sajansshergill@gmail.com');
+    await page.type("input[name='emailAddress']", 'bezeymer@gmail.com');
     await new Promise(r => setTimeout(r, 1000));
-    await page.type("input[name='fullDaytimePhone", '5513584335');
+    await page.type("input[name='fullDaytimePhone", '2392658945');
     await new Promise(r => setTimeout(r, 1000));
     await page.click('#rs-checkout-continue-button-bottom');
     await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 2000);
