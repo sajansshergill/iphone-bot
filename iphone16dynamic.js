@@ -24,7 +24,7 @@ const zipcodeToStoreMap = new Map([
 ]);
 
 // Load configuration from JSON file
-function loadConfig(configPath = 'config.json') {
+function loadConfig(configPath = 'config16.json') {
     try {
         const configFile = path.resolve(configPath);
         
@@ -163,7 +163,6 @@ function getColorValue(colorName) {
 async function givePage() {
     const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
     const page = await browser.newPage();
-    await page.goto(url_17_pro, { waitUntil: 'domcontentloaded' });
     return { browser, page };
 }
 
@@ -183,12 +182,16 @@ async function run() {
         console.log('Starting automated checkout process...\n');
         
         const { browser, page } = await givePage();
-        await add_to_cart(page, config);
-        await checkout_pickup(page, config);
-        await payment(page, config);
-        await billing_details(page, config);
-        
-        console.log('\nCheckout process completed!');
+        while(true){
+            await page.goto(url_17_pro, { waitUntil: 'domcontentloaded' });
+            await add_to_cart(page, config);
+            await checkout_pickup(page, config);
+            await payment(page, config);
+            await billing_details(page, config);
+            
+            console.log('\nCheckout process completed!');
+            await new Promise(r => setTimeout(r, 4000));
+        }
         
     } catch (error) {
         console.error('Error during checkout process:', error.message);

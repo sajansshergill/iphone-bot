@@ -1,26 +1,26 @@
 {
-    "product": {
-      "color": "black"
-    },
-    "pickup": {
-      "zipcode": "32839"
-    },
-    "contact": {
-      "firstName": "Sajan",
-      "lastName": "Shergill", 
-      "email": "sajanshergill@gmail.com",
-      "phone": "5513584335"
-    },
-    "payment": {
-      "cardNumber": "4929222726640311",
-      "expiration": "02/29",
-      "cvv": "940"
-    },
-    "billing": {
-      "firstName": "Sajan",
-      "lastName": "Shergill",
-      "address": "One Place Plaza",
-      "state": "NY",
-      "zipCode": "10038"
-    }
+  "product": {
+    "color": "silver"
+  },
+  "pickup": {
+    "zipcode": "32839"
+  },
+  "contact": {
+    "firstName": "Bernardo",
+    "lastName": "Soares",
+    "email": "bezeymer@gmail.com",
+    "phone": "2392658945"
+  },
+  "payment": {
+    "cardNumber": "4929222726640311",
+    "expiration": "02/29",
+    "cvv": "940"
+  },
+  "billing": {
+    "firstName": "Sajan",
+    "lastName": "Shergill",
+    "address": "One Place Plaza",
+    "state": "NY",
+    "zipCode": "10038"
   }
+}
