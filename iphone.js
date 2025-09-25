@@ -2,12 +2,13 @@
  * iPhone 17 Pro Max Automated Checkout Script
  * 
  * This script automates the checkout process for iPhone 17 Pro Max on Apple's website
- * with user-provided customization and shipping/payment details.
+ * with configuration loaded from a JSON file.
  */
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const readline = require('readline');
+const fs = require('fs');
+const path = require('path');
 
 puppeteer.use(StealthPlugin());
 
@@ -21,99 +22,134 @@ const zipcodeToStoreMap = new Map([
     ['33139', 'R115'],
     ['33132', 'R623']
 ]);
-// Create readline interface for user input
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
 
-// Helper function to prompt user for input
-function askQuestion(question) {
-    return new Promise((resolve) => {
-        rl.question(question, (answer) => {
-            resolve(answer.trim());
-        });
-    });
-}
-
-// Helper function to validate color choice
-function validateColor(color) {
-    const validColors = ['silver', 'cosmic orange', 'deep blue'];
-    return validColors.includes(color.toLowerCase());
-}
-
-// Helper function to validate email format
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// Helper function to validate phone number (basic validation)
-function validatePhone(phone) {
-    const phoneRegex = /^\d{10}$/;
-    return phoneRegex.test(phone.replace(/\D/g, ''));
-}
-
-// Collect user inputs
-async function collectUserInputs() {
-    console.log('=== iPhone 17 Pro Max Checkout Configuration ===\n');
-    
-    const userInputs = {};
-    
-    // Color selection
-    let color;
-    do {
-        color = await askQuestion('Choose color (silver, cosmic orange, deep blue): ');
-        if (!validateColor(color)) {
-            console.log('Invalid color. Please choose from: silver, cosmic orange, deep blue');
-        }
-    } while (!validateColor(color));
-    userInputs.color = color.toLowerCase();
+// Load configuration from JSON file
+function loadConfig(configPath = 'config17.json') {
+    try {
+        const configFile = path.resolve(configPath);
         
-    let pickupZipcode;
-    do {
-        pickupZipcode = await askQuestion('Zipcode of pickup store (32839, 33130, 32809, 33139, 33132): ');
-        if (!zipcodeToStoreMap.has(pickupZipcode)) {
-            console.log('Invalid zipcode. Available zipcodes are:', Array.from(zipcodeToStoreMap.keys()).join(', '));
+        if (!fs.existsSync(configFile)) {
+            console.error(`Configuration file not found: ${configFile}`);
+            console.log('\nCreating example configuration file...');
+            createExampleConfig(configFile);
+            console.log(`Please edit ${configFile} with your details and run the script again.`);
+            process.exit(1);
         }
-    } while (!zipcodeToStoreMap.has(pickupZipcode));
-    userInputs.pickupZipcode = pickupZipcode;
-    
-    // Email validation
-    let email;
-    do {
-        email = await askQuestion('Email Address: ');
-        if (!validateEmail(email)) {
-            console.log('Invalid email format. Please enter a valid email address.');
+        
+        const configData = fs.readFileSync(configFile, 'utf8');
+        const config = JSON.parse(configData);
+        
+        // Validate the configuration
+        validateConfig(config);
+        
+        console.log('Configuration loaded successfully from:', configFile);
+        return config;
+        
+    } catch (error) {
+        console.error('Error loading configuration:', error.message);
+        process.exit(1);
+    }
+}
+
+// Create example configuration file
+function createExampleConfig(configPath) {
+    const exampleConfig = {
+        "product": {
+            "color": "silver"
+        },
+        "pickup": {
+            "zipcode": "32839"
+        },
+        "contact": {
+            "firstName": "Bernardo",
+            "lastName": "Soares",
+            "email": "bezeymer@gmail.com",
+            "phone": "2392658945"
+        },
+        "payment": {
+            "cardNumber": "4929222726640311",
+            "expiration": "02/29",
+            "cvv": "940"
+        },
+        "billing": {
+            "firstName": "Sajan",
+            "lastName": "Shergill",
+            "address": "One Place Plaza",
+            "state": "NY",
+            "zipCode": "10038"
         }
-    } while (!validateEmail(email));
-    userInputs.email = email;
+    };
     
-    // Phone validation
-    let phone;
-    do {
-        phone = await askQuestion('Phone Number (10 digits): ');
-        if (!validatePhone(phone)) {
-            console.log('Invalid phone number. Please enter 10 digits.');
+    fs.writeFileSync(configPath, JSON.stringify(exampleConfig, null, 2));
+}
+
+// Validate configuration
+function validateConfig(config) {
+    const requiredFields = [
+        'product.color',
+        'pickup.zipcode',
+        'contact.firstName',
+        'contact.lastName', 
+        'contact.email',
+        'contact.phone',
+        'payment.cardNumber',
+        'payment.expiration',
+        'payment.cvv',
+        'billing.firstName',
+        'billing.lastName',
+        'billing.address',
+        'billing.state',
+        'billing.zipCode'
+    ];
+    
+    const missing = [];
+    
+    requiredFields.forEach(field => {
+        const keys = field.split('.');
+        let current = config;
+        
+        for (const key of keys) {
+            if (!current || !current.hasOwnProperty(key)) {
+                missing.push(field);
+                break;
+            }
+            current = current[key];
         }
-    } while (!validatePhone(phone));
-    userInputs.phone = phone.replace(/\D/g, ''); // Remove non-digits
+        
+        // Check if the final value is empty or null
+        if (current === null || current === undefined || current === '') {
+            missing.push(field);
+        }
+    });
     
-    console.log('\n=== Payment Information ===');
+    if (missing.length > 0) {
+        throw new Error(`Missing or empty required configuration fields: ${missing.join(', ')}`);
+    }
     
-    // Payment details
-    userInputs.cardNumber = await askQuestion('Card Number: ');
-    userInputs.expiration = await askQuestion('Expiration Date (MM/YY): ');
-    userInputs.cvv = await askQuestion('CVV: ');
+    // Validate specific values
+    const validColors = ['silver', 'cosmic orange', 'deep blue'];
+    if (!validColors.includes(config.product.color.toLowerCase())) {
+        throw new Error(`Invalid color: ${config.product.color}. Valid colors: ${validColors.join(', ')}`);
+    }
     
-    console.log('\n=== Billing Address ===');
-    userInputs.billingFirstName = await askQuestion('Billing First Name: ');
-    userInputs.billingLastName = await askQuestion('Billing Last Name: ');
-    userInputs.billingAddress = await askQuestion('Billing Street Address: ');
-    userInputs.billingState = await askQuestion('Billing State (2 letters): ');
-    userInputs.billingZipCode = await askQuestion('Billing ZIP Code: ');
+    if (!zipcodeToStoreMap.has(config.pickup.zipcode)) {
+        throw new Error(`Invalid pickup zipcode: ${config.pickup.zipcode}. Valid zipcodes: ${Array.from(zipcodeToStoreMap.keys()).join(', ')}`);
+    }
     
-    return userInputs;
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(config.contact.email)) {
+        throw new Error(`Invalid email format: ${config.contact.email}`);
+    }
+    
+    // Basic phone validation
+    const phoneRegex = /^\d{10}$/;
+    const cleanPhone = config.contact.phone.replace(/\D/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+        throw new Error(`Invalid phone number: ${config.contact.phone}. Must be 10 digits.`);
+    }
+    
+    console.log('Configuration validation passed ✓');
 }
 
 // Map color names to Apple's color values
@@ -123,53 +159,62 @@ function getColorValue(colorName) {
         'cosmic orange': 'cosmicorange',
         'deep blue': 'deepblue'
     };
-    return colorMap[colorName] || 'deepblue';
+    return colorMap[colorName.toLowerCase()] || 'deepblue';
 }
 
 async function givePage() {
     const browser = await puppeteer.launch({ headless: false, defaultViewport: null });
     const page = await browser.newPage();
-    await page.goto(url_17_pro, { waitUntil: 'domcontentloaded' });
     return { browser, page };
 }
 
 async function run() {
     try {
-        // Collect user inputs first
-        const userInputs = await collectUserInputs();
-        rl.close();
+        // Load configuration from JSON file
+        const config = loadConfig();
         
-        console.log('\nStarting automated checkout process...\n');
+        console.log('\n=== Configuration Summary ===');
+        console.log(`Product: iPhone 17 Pro Max, ${config.product.color}`);
+        console.log(`Pickup: ${config.pickup.zipcode}`);
+        console.log(`Contact: ${config.contact.firstName} ${config.contact.lastName}`);
+        console.log(`Email: ${config.contact.email}`);
+        console.log(`Phone: ${config.contact.phone}`);
+        console.log('================================\n');
+        
+        console.log('Starting automated checkout process...\n');
         
         const { browser, page } = await givePage();
-        await add_to_cart(page, userInputs);
-        await checkout_pickup(page, userInputs);
-
-        await payment(page, userInputs);
-        await billing_details(page, userInputs);
-        
-        console.log('\nCheckout process completed!');
+        while(true){
+            await page.goto(url_17_pro, { waitUntil: 'domcontentloaded' });
+            await add_to_cart(page, config);
+            await checkout_pickup(page, config);
+            await payment(page, config);
+            await billing_details(page, config);
+            
+            console.log('\nCheckout process completed!');
+            await new Promise(r => setTimeout(r, 4000));
+        }
         
     } catch (error) {
-        console.error('Error during checkout process:', error);
-        rl.close();
+        console.error('Error during checkout process:', error.message);
+        process.exit(1);
     }
 }
 
-async function billing_details(page, userInputs) {
+async function billing_details(page, config) {
     await new Promise(r => setTimeout(r, 4000));
     
     selector = "input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.billingAddress.address.firstName']";
     await page.waitForSelector(selector);
-    await page.type(selector, userInputs.billingFirstName);
+    await page.type(selector, config.billing.firstName);
 
-    await page.type("input[name='lastName']", userInputs.billingLastName);
-    await page.type("input[name='street']", userInputs.billingAddress);
+    await page.type("input[name='lastName']", config.billing.lastName);
+    await page.type("input[name='street']", config.billing.address);
 
     //Zip code handling
     const input = await page.$("input[name='postalCode']");
     await input.click({clickCount: 3});
-    await input.type(userInputs.billingZipCode);
+    await input.type(config.billing.zipCode);
     
     await new Promise(r => setTimeout(r, 5000));
     await page.click('#rs-checkout-continue-button-bottom');
@@ -179,14 +224,14 @@ async function billing_details(page, userInputs) {
     await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 5000);
 }
 
-async function add_to_cart(page, userInputs) {
+async function add_to_cart(page, config) {
     console.log(`add_to_cart method url ${page.url()}`);
     
     // Select iPhone 17 Pro Max (6.9 inch screen)
     await smart_click_with_pause(page, "input[data-autom='dimensionScreensize6_9inch']", 0);
     
-    // Select color based on user input
-    const colorValue = getColorValue(userInputs.color);
+    // Select color based on config
+    const colorValue = getColorValue(config.product.color);
     await smart_click_with_pause(page, `input[value='${colorValue}']`, 0);
     
     // Select 256GB storage (fixed)
@@ -212,75 +257,71 @@ async function add_to_cart(page, userInputs) {
     // Guest checkout (fixed)
     await smart_click_with_pause(page, "button[id='signIn.guestLogin.guestLogin']", 1000);
 
-
-
-
-    // NEW CODE PICKUP
+    // Pickup configuration
     await smart_click_with_pause(page, "button[aria-checked='false']", 1000);
     await smart_click_with_pause(page, "button[data-autom='fulfillment-pickup-store-search-button']", 1000);
 
     await page.waitForSelector("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']");
-    await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 }); // select all
-    await page.keyboard.press("Backspace"); // clear
-    await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", userInputs.pickupZipcode); // type new value
+    await page.click("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", { clickCount: 3 });
+    await page.keyboard.press("Backspace");
+    await page.type("input[id='checkout.fulfillment.pickupTab.pickup.storeLocator.searchInput']", config.pickup.zipcode);
     await smart_click_with_pause(page, "button[id='checkout.fulfillment.pickupTab.pickup.storeLocator.search']", 5000);
 
-    await smart_click_with_pause(page, `input[value='${zipcodeToStoreMap.get(userInputs.pickupZipcode)}']`, 5000);
+    await smart_click_with_pause(page, `input[value='${zipcodeToStoreMap.get(config.pickup.zipcode)}']`, 5000);
     await new Promise(r => setTimeout(r, 10000));
 
     const dropdown = "select#checkout\\.fulfillment\\.pickupTab\\.pickup\\.timeSlot\\.dateTimeSlots\\.timeSlotValue";
     await page.click(dropdown);
     
-    // Select the first option (index 0)
+    // Select the first available option
     const firstValue = await page.$eval(dropdown, el => el.options[1].value);
     console.log("Selected value: " + firstValue);
     await page.select(dropdown, firstValue);
 
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
-    // await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 1000);
 }
 
-async function checkout_pickup(page) {
+async function checkout_pickup(page, config) {
     await new Promise(r => setTimeout(r, 4000));
     
     selector = "input[id='checkout.pickupContact.selfPickupContact.selfContact.address.firstName']";
     await page.waitForSelector(selector);
-    await page.type(selector, "Bernardo");
+    await page.type(selector, config.contact.firstName);
 
-    await page.type("input[name='lastName']", 'Soares');
-
-    await page.type("input[name='emailAddress']", 'bezeymer@gmail.com');
+    await page.type("input[name='lastName']", config.contact.lastName);
+    await page.type("input[name='emailAddress']", config.contact.email);
     await new Promise(r => setTimeout(r, 1000));
-    await page.type("input[name='fullDaytimePhone", '2392658945');
+    
+    // Clean phone number (remove non-digits)
+    const cleanPhone = config.contact.phone.replace(/\D/g, '');
+    await page.type("input[name='fullDaytimePhone']", cleanPhone);
     await new Promise(r => setTimeout(r, 1000));
+    
     await page.click('#rs-checkout-continue-button-bottom');
     await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 2000);
-
 }
 
-async function payment(page, userInputs) {
+async function payment(page, config) {
     console.log(`payment method url ${page.url()}`);
     
     // Select credit card payment
     await smart_click_with_pause(page, "label[id='checkout.billing.billingoptions.credit_label']", 1000);
 
-    // Fill payment details with user inputs
+    // Fill payment details from config
     const cardSelector = "input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.cardNumber']";
     await page.waitForSelector(cardSelector);
-    await page.type(cardSelector, userInputs.cardNumber);
+    await page.type(cardSelector, config.payment.cardNumber);
     await new Promise(r => setTimeout(r, 1000));
     
-    await page.type("input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.expiration']", userInputs.expiration);
+    await page.type("input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.expiration']", config.payment.expiration);
     await new Promise(r => setTimeout(r, 1000));
     
-    await page.type("input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.securityCode']", userInputs.cvv);
+    await page.type("input[id='checkout.billing.billingOptions.selectedBillingOptions.creditCard.cardInputs.cardInput-0.securityCode']", config.payment.cvv);
     await new Promise(r => setTimeout(r, 1000));
     
     // Continue to billing address
     await smart_click_with_pause(page, "button[data-autom='continue-button-label']", 3000);
-
     await smart_click_with_pause(page, "button[id='rs-checkout-continue-button-bottom']", 2000);
-    
 }
 
 // Helper Function (unchanged from original)
@@ -325,7 +366,7 @@ async function smart_click_with_pause(page, selector, pause, maxRetries = 3) {
                     console.log("Retrying first page");
                     await page.goto(url_17_pro);
                     firstPageCurrRetries += 1;
-                    await add_to_cart(page, selector, pause);
+                    await add_to_cart(page, config);
                 }
                 throw new Error(`Failed to click ${selector} after ${maxRetries} attempts. Last error: ${error.message}`);
             }
